@@ -8,15 +8,19 @@ namespace Prim_Kruskal_Web.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        
+        public ActionResult Index() // giới thiệu về giải thuật tham lam, prim and kruskal
         {
             return View();
         }
 
-        public ActionResult About()
+        public ActionResult MoPhong() // mô phỏng trực quan
         {
-            ViewBag.Message = "Your application description page.";
-
+            return View();
+        }
+         
+        public ActionResult UngDung()
+        {
             return View();
         }
 
@@ -27,17 +31,6 @@ namespace Prim_Kruskal_Web.Controllers
             return View();
         }
 
-        public ActionResult Login()
-        {
-            return View();
-        }
-        public ActionResult Register()
-        {
-            return View();
-        }
-        public ActionResult Details()
-        {
-              return View();
-        }
+        
         }
 }
