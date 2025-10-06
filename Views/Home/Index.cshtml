@@ -1,12 +1,39 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Trang chủ - Hệ thống đặt vé tour du lịch";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- Main Content Section -->
-<main>
-    <div class="container">
-        <h2 class="section-title">Giới thiệu về giải thuật</h2>
-        
+<!-- HERO SECTION -->
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <h1>Khám phá thế giới với <span>TourWorld</span></h1>
+        <p>Ứng dụng giải thuật tối ưu hóa lộ trình – giúp bạn du lịch dễ dàng, tiết kiệm và thú vị hơn!</p>
+        <a href="@Url.Action("MoPhong","Home")" class="btn-explore">Khám phá ngay</a>
     </div>
-</main>
+</section>
+
+<!-- GIỚI THIỆU -->
+<section class="intro">
+    <div class="container">
+        <h2 class="section-title">🌐 Giới thiệu về giải thuật</h2>
+        <p class="intro-text">
+            Trong hệ thống đặt vé tour du lịch, việc tìm lộ trình tối ưu để giảm chi phí và thời gian là một thách thức lớn.
+            Hai thuật toán nổi bật được ứng dụng là <strong>Prim</strong> và <strong>Kruskal</strong>, giúp tìm ra mạng lưới kết nối
+            các điểm du lịch hiệu quả nhất.
+        </p>
+
+        <div class="intro-grid">
+            <div class="intro-card">
+                <img src="~/Content/images/prim.jpg" alt="Thuật toán Prim">
+                <h3>Thuật toán Prim</h3>
+                <p>Tìm cây khung nhỏ nhất bằng cách mở rộng dần các đỉnh được chọn – phù hợp khi muốn tính nhanh từ một điểm xuất phát.</p>
+            </div>
+            <div class="intro-card">
+                <img src="~/Content/images/kruskal.jpg" alt="Thuật toán Kruskal">
+                <h3>Thuật toán Kruskal</h3>
+                <p>Xây dựng cây khung nhỏ nhất bằng cách chọn các cạnh ngắn nhất – lý tưởng cho mô hình có nhiều tuyến kết nối.</p>
+            </div>
+        </div>
+    </div>
+</section>
