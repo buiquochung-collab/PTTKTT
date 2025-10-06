@@ -6,34 +6,61 @@
     <title>@ViewBag.Title - My ASP.NET Application</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+<link href="~/Content/css/style.css" rel="stylesheet" />
 </head>
 <body>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
-        <div class="container">
-            @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Toggle navigation" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Home", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("About", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+    <!-- Header Section -->
+    <header class="bg-warning">
+        <div class="container header-content border-bottom bg-warning">
+            <div class="logo"><a href="@Url.Action("Index","Home")">Logo Website</a></div>
+            <nav aria-label="Chính">
+                <ul class="nav-list">
+                    <li><a href="@Url.Action("Index","Home")">Trang Chủ</a></li>
+                    <li><a href="@Url.Action("About","Home")">Giới Thiệu</a></li>
+                    <li><a href="@Url.Action("Contact","Home")">Liên Hệ</a></li>
+                    <li><a href="@Url.Action("Login","Home")" class="btn btn-login">Đăng nhập</a></li>
+                    <li><a href="@Url.Action("Register","Home")" class="btn btn-register">Đăng ký ngay</a></li>
                 </ul>
-            </div>
+            </nav>
         </div>
-    </nav>
-    <div class="container body-content">
+    </header>
+
+
+    <div class="container container-fluid">
         @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
-        </footer>
     </div>
 
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    @RenderSection("scripts", required: false)
+    <!-- Footer Section -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Thông Tin Liên Hệ</h3>
+                    <p>Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh</p>
+                    <p>Điện thoại: (0123) 456-789</p>
+                    <p>Email: contact@example.com</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Liên Kết Nhanh</h3>
+                    <a href="#">Trang Chủ</a>
+                    <a href="#">Giới Thiệu</a>
+                    <a href="#">Dịch Vụ</a>
+                    <a href="#">Sản Phẩm</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Theo Dõi Chúng Tôi</h3>
+                    <a href="#">Facebook</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Instagram</a>
+                    <a href="#">LinkedIn</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Tên Công Ty. Tất cả các quyền được bảo lưu. | Phát triển bởi Nhóm Phát Triển</p>
+            </div>
+        </div>
+    </footer>
+    <script src="~/Scripts/js/script.js"></script>
 </body>
+
 </html>

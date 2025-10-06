@@ -26,5 +26,18 @@ namespace Prim_Kruskal_Web.Controllers
 
             return View();
         }
-    }
+
+        public ActionResult Login()
+        {
+            return View();
+        }
+        public ActionResult Register()
+        {
+            return View();
+        }
+        public ActionResult Details()
+        {
+              return View();
+        }
+        }
 }
