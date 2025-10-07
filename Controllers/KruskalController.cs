@@ -6,9 +6,9 @@ using System.Web.Mvc;
 
 namespace Prim_Kruskal_Web.Controllers
 {
-    public class AlgorithmController : Controller
+    public class KruskalController : Controller
     {
-        // GET: Algorithm
+        // GET: Kruskal: gọi giải thuật kruskal từ service, trả về kết quả
         public ActionResult Index()
         {
             return View();
