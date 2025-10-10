@@ -128,8 +128,10 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\DatabaseContext.cs" />
+    <Compile Include="Models\DisjoinSet.cs" />
     <Compile Include="Models\Edge.cs" />
     <Compile Include="Models\Graph.cs" />
+    <Compile Include="Models\Kruskal.cs" />
     <Compile Include="Models\Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ComparisonService.cs" />
@@ -200,10 +202,11 @@
     <Content Include="Views\Home\MoPhong.cshtml" />
     <Content Include="Views\Home\UngDung.cshtml" />
     <Content Include="Views\Algorithm\Index.cshtml" />
+    <Content Include="Views\Kruskal\Index.cshtml" />
+    <Content Include="Views\Kruskal\Result.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\Kruskal\" />
     <Folder Include="Views\Prim\" />
     <Folder Include="Views\Tour\" />
   </ItemGroup>

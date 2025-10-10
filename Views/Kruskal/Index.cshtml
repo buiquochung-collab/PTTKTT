@@ -1,0 +1,38 @@
+﻿@model Prim_Kruskal_Web.Models.Graph
+@{
+    ViewBag.Title = "Danh sách các cạnh trong đồ thị";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Đồ thị hiện tại</h2>
+
+@if (Model == null || Model.Edges == null || Model.Edges.Count == 0)
+{
+    <p>Không có dữ liệu đồ thị nào trong cơ sở dữ liệu.</p>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Nguồn</th>
+                <th>Đích</th>
+                <th>Trọng số (Khoảng cách KM)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var edge in Model.Edges)
+            {
+                <tr>
+                    <td>@edge.Src.Name</td>
+                    <td>@edge.Destination.Name</td>
+                    <td>@edge.Weight</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px;">
+        <a href="@Url.Action("RunKruskal", "Kruskal")" class="btn btn-primary">Chạy thuật toán Kruskal</a>
+    </div>
+}
