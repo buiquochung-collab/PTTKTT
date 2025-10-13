@@ -37,6 +37,35 @@ namespace Prim_Kruskal_Web.Controllers
                 return Content("Loi khi chay Kruskal: " + ex.Message);
             }
         }
+
+
+        public ActionResult Compare()
+        {
+            var graph = db.LoadGraph();
+            if (graph == null) return Content("Không có dữ liệu đồ thị.");
+
+            // Thời gian Kruskal
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var mstKruskal = Kruskal.FindMST(graph);
+            sw.Stop();
+
+            var result = new CompareResult
+            {
+                Graph = graph,
+                KruskalEdges = mstKruskal,
+                KruskalTime = sw.ElapsedMilliseconds,
+                KruskalCost = mstKruskal.Sum(e => e.Weight),
+
+                // Keep placeholders for Prim - nhóm bạn sẽ gán sau merge
+                PrimEdges = null,
+                PrimTime = 0,
+                PrimCost = 0
+            };
+
+            return View(result);
+        }
+
+
     }
 
     

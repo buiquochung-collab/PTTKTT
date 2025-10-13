@@ -1,0 +1,254 @@
+﻿
+@model Prim_Kruskal_Web.Models.CompareResult
+
+@{
+    ViewBag.Title = "Compare";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var graph = Model?.Graph;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" /> 
+@*thư viện*@
+
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0">So sánh Kruskal & Prim — MST cho đồ thị du lịch</h2>
+        <div>
+            <button id="btnHighlightKruskal" class="btn btn-primary btn-sm">Hiển thị MST (Kruskal)</button>
+            <button id="btnReset" class="btn btn-outline-secondary btn-sm">Reset hiển thị</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left: canvas đồ thị -->
+        <div class="col-lg-7 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header">Đồ thị (node / cạnh)</div>
+                <div class="card-body">
+                    <div id="network" style="height:480px; border:1px solid #eee;"></div>
+                    <small class="text-muted">Trọng số cạnh hiển thị trên mỗi cạnh. MST sẽ được highlight màu đỏ.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: bảng kết quả + chart -->
+        <div class="col-lg-5 mb-3">
+            <div class="card mb-3 shadow-sm">
+                <div class="card-header">Kết quả nhanh</div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr><th>Thuật toán</th><th>Tổng chi phí</th><th>Thời gian (ms)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Kruskal</td>
+                                <td id="kruskalCost">@Model?.KruskalCost</td>
+                                <td id="kruskalTime">@Model?.KruskalTime</td>
+                            </tr>
+                            <tr>
+                                <td>Prim (placeholder)</td>
+                                <td id="primCost">@(Model?.PrimCost == 0 ? "N/A" : Model?.PrimCost.ToString())</td>
+                                <td id="primTime">@(Model?.PrimTime == 0 ? "N/A" : Model?.PrimTime.ToString())</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <canvas id="compareChart" style="max-height:240px;"></canvas>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header">Hành động bổ sung</div>
+                <div class="card-body">
+                    <button id="btnExportCSV" class="btn btn-outline-success btn-sm">Xuất MST Kruskal (CSV)</button>
+                    <small class="d-block mt-2 text-muted">Phần Prim để trống — nhóm bạn sẽ merge sau.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu dành cho Prim: chừa chỗ cho Uyên Ngô merge -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">Khu vực Prim (reserved)</div>
+                <div class="card-body">
+                    <!-- ĐỂ TRỐNG: đặt UI/Canvas/Script cho Prim tại đây -->
+                    <div id="prim-area">
+                        <p class="text-muted">Prim canvas và controls sẽ được nhóm bạn merge vào đây. (div id = <strong>prim-area</strong>)</p>
+                        <div id="prim-canvas" style="height:320px; border:1px dashed #ccc;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- scripts: vis-network + Chart.js + bootstrap JS (tùy chọn) -->
+<script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+
+
+
+
+@*không biết css trong script nào nên làm liều :))*@
+
+<script>
+    // Convert server model to JS-friendly structures
+    const nodes = [];
+    const edges = [];
+    const edgeIdMap = {}; // map để nhanh tìm edge object theo from-to
+
+    @* render nodes *@
+    @if (graph != null && graph.Nodes != null)
+    {
+        foreach (var n in graph.Nodes)
+        {
+            <text>
+                nodes.push({ id: @n.Id, label: "@n.Name" });
+            </text>
+        }
+    }
+
+    @* render edges (từ graph.Edges) *@
+    @if (graph != null && graph.Edges != null)
+    {
+        var idx = 0;
+        foreach (var e in graph.Edges)
+        {
+            <text>
+                edges.push({
+                    id: @idx,
+                    from: @e.Src.Id,
+                    to: @e.Destination.Id,
+                    label: "@e.Weight",
+                    width: 1,
+                    color: { color: '#848484' }
+                });
+                edgeIdMap['@e.Src.Id-@e.Destination.Id'] = @idx;
+            </text>
+            idx++;
+        }
+    }
+
+    // MST edges from model (Kruskal)
+    const kruskalMstEdgeIds = [];
+    @if (Model?.KruskalEdges != null)
+    {
+        var kidx = 0;
+        foreach (var me in Model.KruskalEdges)
+        {
+            // find matching edge id in edges[] by matching endpoints (might be undirected)
+            <text>
+                // try both directions
+                (function(){
+                    var key1 = '@me.Src.Id-@me.Destination.Id';
+                    var key2 = '@me.Destination.Id-@me.Src.Id';
+                    var found = null;
+                    if (edgeIdMap.hasOwnProperty(key1)) found = edgeIdMap[key1];
+                    else if (edgeIdMap.hasOwnProperty(key2)) found = edgeIdMap[key2];
+                    if (found !== null) kruskalMstEdgeIds.push(found);
+                })();
+            </text>
+            kidx++;
+        }
+    }
+
+    // vis-network init
+    const container = document.getElementById('network');
+    const data = {
+        nodes: new vis.DataSet(nodes),
+        edges: new vis.DataSet(edges)
+    };
+    const options = {
+        physics: { stabilization: true, barnesHut: { gravitationalConstant: -3000 } },
+        edges: { smooth: true, font: { align: 'top' } },
+        nodes: { shape: 'dot', size: 14, font: { size: 14 } }
+    };
+    const network = new vis.Network(container, data, options);
+
+    // highlight MST edges (Kruskal)
+    document.getElementById('btnHighlightKruskal').addEventListener('click', function(){
+        // reset first
+        data.edges.forEach(function(e){
+            data.edges.update({ id: e.id, color: { color: '#848484' }, width: 1 });
+        });
+        kruskalMstEdgeIds.forEach(function(eid){
+            data.edges.update({ id: eid, color: { color: '#d9534f' }, width: 4 });
+        });
+    });
+
+    // reset button
+    document.getElementById('btnReset').addEventListener('click', function(){
+        data.edges.forEach(function(e){
+            data.edges.update({ id: e.id, color: { color: '#848484' }, width: 1 });
+        });
+    });
+
+    // Export CSV MST Kruskal
+    document.getElementById('btnExportCSV').addEventListener('click', function(){
+        let rows = [['Src','Dest','Weight']];
+        @* pull Kruskal edges from server model representation *@
+        @if (Model?.KruskalEdges != null)
+        {
+            foreach (var e in Model.KruskalEdges)
+            {
+                <text>rows.push(["@e.Src.Name","@e.Destination.Name","@e.Weight"]);</text>
+            }
+        }
+        let csv = rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'mst_kruskal.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // Chart.js - so sánh Kruskal vs Prim (Prim có thể là N/A -> xử lý)
+    (function(){
+        const ctx = document.getElementById('compareChart').getContext('2d');
+        const kruskalTime = @Model?.KruskalTime ?? 0;
+        const primTime = @Model?.PrimTime ?? 0;
+        const kruskalCost = @Model?.KruskalCost ?? 0;
+        const primCostVal = @Model?.PrimCost ?? 0;
+
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Thời gian (ms)', 'Tổng chi phí'],
+                datasets: [
+                    {
+                        label: 'Kruskal',
+                        data: [kruskalTime, kruskalCost],
+                        backgroundColor: 'rgba(217,83,79,0.7)'
+                    },
+                    {
+                        label: 'Prim (placeholder)',
+                        data: [primTime, primCostVal],
+                        backgroundColor: 'rgba(92,184,92,0.7)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    })();
+</script>
+
+<style>
+    /* Nhẹ, cho đẹp */
+    .card-header {
+        font-weight: 600;
+    }
+</style>

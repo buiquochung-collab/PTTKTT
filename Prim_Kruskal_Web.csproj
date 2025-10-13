@@ -127,6 +127,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\CompareResult.cs" />
     <Compile Include="Models\DatabaseContext.cs" />
     <Compile Include="Models\DisjoinSet.cs" />
     <Compile Include="Models\Edge.cs" />
@@ -204,6 +205,7 @@
     <Content Include="Views\Algorithm\Index.cshtml" />
     <Content Include="Views\Kruskal\Index.cshtml" />
     <Content Include="Views\Kruskal\Result.cshtml" />
+    <Content Include="Views\Kruskal\Compare.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
