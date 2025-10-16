@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using Prim_Kruskal_Web.Models;
+
 
 namespace Prim_Kruskal_Web.Controllers
 {
@@ -56,7 +56,7 @@ namespace Prim_Kruskal_Web.Controllers
                 KruskalTime = sw.ElapsedMilliseconds,
                 KruskalCost = mstKruskal.Sum(e => e.Weight),
 
-                // Keep placeholders for Prim - nhóm bạn sẽ gán sau merge
+                // Keep placeholders for Prim
                 PrimEdges = null,
                 PrimTime = 0,
                 PrimCost = 0
