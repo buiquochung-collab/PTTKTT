@@ -1,0 +1,205 @@
+﻿@model Prim_Kruskal_Web.Models.CompareResult
+
+@{
+    ViewBag.Title = "Compare";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var graph = Model?.Graph;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0">So sánh Kruskal & Prim — MST cho đồ thị du lịch</h2>
+        <div>
+            <button id="btnHighlightKruskal" class="btn btn-danger btn-sm">Hiển thị MST (Kruskal)</button>
+            <button id="btnReset" class="btn btn-outline-secondary btn-sm">Reset</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left: canvas đồ thị -->
+        <div class="col-lg-7 mb-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">Đồ thị (node / cạnh)</div>
+                <div class="card-body">
+                    <div id="network" style="height:480px; border:1px solid #eee; border-radius:8px;"></div>
+                    <small class="text-muted">Trọng số cạnh hiển thị trên mỗi cạnh. MST sẽ được highlight màu đỏ với animation.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: bảng kết quả + chart -->
+        <div class="col-lg-5 mb-3">
+            <div class="card mb-3 shadow-sm border-0">
+                <div class="card-header bg-success text-white">Kết quả nhanh</div>
+                <div class="card-body">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr><th>Thuật toán</th><th>Tổng chi phí</th><th>Thời gian (ms)</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Kruskal</td>
+                                <td id="kruskalCost">@((Model?.KruskalCost ?? 0).ToString("N0"))</td>
+                                <td id="kruskalTime">@((Model?.KruskalTime ?? 0).ToString("N0"))</td>
+                            </tr>
+                            <tr>
+                                <td>Prim (placeholder)</td>
+                                <td id="primCost">@((Model?.PrimCost ?? 0) == 0 ? "N/A" : Model?.PrimCost.ToString("N0"))</td>
+                                <td id="primTime">@((Model?.PrimTime ?? 0) == 0 ? "N/A" : Model?.PrimTime.ToString("N0"))</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <canvas id="compareChart" style="max-height:240px;"></canvas>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-warning text-dark">Hành động bổ sung</div>
+                <div class="card-body">
+                    <button id="btnExportCSV" class="btn btn-outline-success btn-sm">Xuất MST Kruskal (CSV)</button>
+                    <small class="d-block mt-2 text-muted">Phần Prim để trống.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu dành cho Prim -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card border-info shadow-sm">
+                <div class="card-header bg-info text-white">Khu vực Prim (reserved)</div>
+                <div class="card-body">
+                    <div id="prim-area" style="transition: box-shadow 0.3s; border-radius:8px;">
+                        <p class="text-muted">Prim canvas và controls sẽ merge vào đây.</p>
+                        <div id="prim-canvas" style="height:320px; border:1px dashed #ccc; border-radius:6px; transition: border-color 0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Convert server model to JS structures
+    const nodes = [];
+    const edges = [];
+    const edgeIdMap = {};
+
+    @if (graph != null && graph.Nodes != null)
+    {
+        foreach (var n in graph.Nodes)
+        {
+            <text>nodes.push({ id: @n.Id, label: "@Html.Raw(HttpUtility.JavaScriptStringEncode(n.Name))" });</text>
+        }
+    }
+
+    @if (graph != null && graph.Edges != null)
+    {
+        var idx = 0;
+        foreach (var e in graph.Edges)
+        {
+            <text>
+edges.push({ id:@idx, from:@e.Src.Id, to:@e.Destination.Id, label:"@e.Weight", width:1, color:{color:'#848484'} });
+edgeIdMap['@e.Src.Id-@e.Destination.Id'] = @idx;
+            </text>
+            idx++;
+        }
+    }
+
+    const kruskalMstEdgeIds = [];
+    @if (Model?.KruskalEdges != null)
+    {
+        foreach (var me in Model.KruskalEdges)
+        {
+            <text>
+(function(){
+    var key1='@me.Src.Id-@me.Destination.Id';
+    var key2='@me.Destination.Id-@me.Src.Id';
+    var found = null;
+    if(edgeIdMap.hasOwnProperty(key1)) found=edgeIdMap[key1];
+    else if(edgeIdMap.hasOwnProperty(key2)) found=edgeIdMap[key2];
+    if(found!==null) kruskalMstEdgeIds.push(found);
+})();
+            </text>
+        }
+    }
+
+    const container = document.getElementById('network');
+    const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+    const options = { physics: { stabilization: true, barnesHut: { gravitationalConstant: -3000 } }, edges: { smooth:true, font:{align:'top'} }, nodes:{shape:'dot', size:14, font:{size:14}} };
+    const network = new vis.Network(container, data, options);
+
+    // Animate MST highlight
+    document.getElementById('btnHighlightKruskal').addEventListener('click', function(){
+        data.edges.forEach(e => data.edges.update({ id:e.id, color:{color:'#848484'}, width:1 }));
+        kruskalMstEdgeIds.forEach((eid, i) => {
+            setTimeout(() => { data.edges.update({ id:eid, color:{color:'#d9534f'}, width:4 }); }, i*150);
+        });
+    });
+
+    // Reset edges
+    document.getElementById('btnReset').addEventListener('click', function(){
+        data.edges.forEach(e => data.edges.update({ id:e.id, color:{color:'#848484'}, width:1 }));
+    });
+
+    // Export CSV
+    document.getElementById('btnExportCSV').addEventListener('click', function(){
+        let rows=[['Src','Dest','Weight']];
+        @if(Model?.KruskalEdges!=null){foreach(var e in Model.KruskalEdges){<text>rows.push(["@e.Src.Name","@e.Destination.Name","@e.Weight"]);</text>}}
+        const csv=rows.map(r=>r.join(',')).join('\n');
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a'); a.href=url; a.download='mst_kruskal.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // Chart.js interactive
+    (function(){
+        const ctx=document.getElementById('compareChart').getContext('2d');
+        const kruskalTime=@Model?.KruskalTime ?? 0;
+        const primTime=@Model?.PrimTime ?? 0;
+        const kruskalCost=@Model?.KruskalCost ?? 0;
+        const primCostVal=@Model?.PrimCost ?? 0;
+
+        new Chart(ctx,{
+            type:'bar',
+            data:{
+                labels:['Thời gian (ms)','Tổng chi phí'],
+                datasets:[
+                    {label:'Kruskal', data:[kruskalTime, kruskalCost], backgroundColor:'rgba(217,83,79,0.7)'},
+                    {label:'Prim (placeholder)', data:[primTime, primCostVal], backgroundColor:'rgba(92,184,92,0.7)'}
+                ]
+            },
+            options:{
+                responsive:true,
+                plugins:{tooltip:{enabled:true, mode:'index', intersect:false}},
+                scales:{y:{beginAtZero:true}}
+            }
+        });
+    })();
+</script>
+
+<style>
+    .card-header {
+        font-weight: 600;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        transition: 0.3s;
+    }
+
+    #prim-area:hover {
+        box-shadow: 0 0 12px rgba(0,123,255,0.3);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,123,255,0.1);
+    }
+</style>

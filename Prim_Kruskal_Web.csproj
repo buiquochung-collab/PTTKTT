@@ -127,6 +127,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\CompareResult.cs" />
     <Compile Include="Models\DatabaseContext.cs" />
     <Compile Include="Models\DisjoinSet.cs" />
     <Compile Include="Models\Edge.cs" />
@@ -158,6 +159,7 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\css\indexAlgorithm.css" />
     <Content Include="Content\css\layouttemp.css" />
+    <Content Include="Content\css\mst_style.css" />
     <Content Include="Content\css\style.css" />
     <Content Include="Content\IMG\0f327dc40093452b10bd7a8c1986216e.jpg" />
     <Content Include="Content\IMG\24e28da0bdea8c4f01f1c6fce73d653d.jpg" />
@@ -204,6 +206,7 @@
     <Content Include="Views\Algorithm\Index.cshtml" />
     <Content Include="Views\Kruskal\Index.cshtml" />
     <Content Include="Views\Kruskal\Result.cshtml" />
+    <Content Include="Views\Kruskal\Compare.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
